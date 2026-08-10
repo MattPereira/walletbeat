@@ -762,7 +762,7 @@
 		{ladders}
 		{wallet}
 		{showScores}
-		{showStage}
+		showStage={false}
 	/>
 {/snippet}
 
