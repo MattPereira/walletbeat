@@ -96,9 +96,10 @@ case 'SecurityAuditsDetails':
 	return renderComponentToMarkdown(SecurityAuditsDetails, {
 		...componentAndProps.componentProps,
 		wallet,
-		metadata: narrowMetadata(outcome),
 	})
 ```
+
+Anything derived from the attribute's outcome — its `metadata`, for instance — is baked into `componentProps` by the `<YourAttributeId>DetailsContent(...)` call in your evaluation, where its type is still known. Spreading `componentProps` is therefore enough; the renderer never has to narrow an erased outcome back to your metadata type. If a later step rewrites the outcome's metadata (as `accountRecovery` does when it merges its two halves), rebuild the details from the merged value too.
 
 Your component is server-rendered and its HTML is converted to Markdown, so it needs no Markdown-specific code of its own. Two conventions are applied for you: any `ReferenceLinks` it renders are stripped, because the Markdown page emits the attribute's references itself; and its headings are demoted one level so that they nest under the attribute's own heading.
 

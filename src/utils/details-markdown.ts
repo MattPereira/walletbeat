@@ -4,14 +4,9 @@ import TurndownService from 'turndown'
 
 import type {
 	EvaluationData,
-	Outcome,
 	OutcomeMetadata,
 	WalletNameAndPseudonymStrings,
 } from '@/schema/attributes'
-import type { AccountRecoveryMetadata } from '@/schema/attributes/security/account-recovery'
-import type { ScamPreventionMetadata } from '@/schema/attributes/security/scam-prevention'
-import type { SecurityAuditsMetadata } from '@/schema/attributes/security/security-audits-bounties'
-import type { AccountUnruggabilityMetadata } from '@/schema/attributes/self-sovereignty/account-unruggability'
 import { type Content, type CustomContent, isCustomContent } from '@/types/content'
 import { getWalletEvalStrings, renderContentToText } from '@/utils/evaluation-content'
 import { normalizeMarkdownBlankLines } from '@/utils/markdown-utils'
@@ -30,8 +25,9 @@ import FundingDetails from '@/views/attributes/transparency/FundingDetails.svelt
  * props baked into the details themselves.
  *
  * `{ outcome, references, wallet }` is the same triple that detail components
- * declare via `EvaluationData`, minus the per-attribute metadata type, which
- * `CustomContent` does not carry.
+ * declare via `EvaluationData`. The per-attribute metadata type is not needed
+ * here: components that require their attribute's metadata get it baked into
+ * `componentProps` at evaluation time, where the type is still known.
  */
 export interface DetailsMarkdownContext extends EvaluationData<OutcomeMetadata> {
 	/** Display name of the attribute being rendered, used for link text. */
@@ -142,37 +138,6 @@ function renderComponentToMarkdown<_Props extends Record<string, unknown>>(
 }
 
 /**
- * Narrow the erased outcome from the rendering context back to the shape that a
- * detail component declares.
- *
- * `CustomContent` does not carry its attribute's metadata type, so this module
- * only ever sees `Outcome<OutcomeMetadata>`. This is the same erasure that makes
- * `WalletPage.svelte` write `metadata={outcome.metadata!}`; what guarantees the
- * shape in both places is the attribute that produced the `CustomContent`.
- *
- * @param outcome The outcome from the rendering context.
- * @returns The same outcome, typed as the component expects it.
- */
-function narrowOutcome<_Metadata extends OutcomeMetadata>(
-	outcome: Outcome<OutcomeMetadata>,
-): Outcome<_Metadata> {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- See doc comment; mirrors `outcome.metadata!` in `WalletPage.svelte`.
-	return outcome as Outcome<_Metadata>
-}
-
-/**
- * Same as `narrowOutcome`, for components that take `metadata` rather than the
- * whole outcome.
- *
- * @param outcome The outcome from the rendering context.
- * @returns The outcome's metadata, typed as the component expects it.
- */
-function narrowMetadata<_Metadata extends object>(outcome: Outcome<OutcomeMetadata>): _Metadata {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- See `narrowOutcome`.
-	return outcome.metadata as _Metadata
-}
-
-/**
  * Render an evaluation's details to Markdown for the LLM-friendly
  * `index.html.md` wallet pages.
  *
@@ -246,7 +211,7 @@ function renderComponentMarkdown(
 	componentAndProps: CustomContent['component'],
 	context: DetailsMarkdownContext,
 ): string | typeof NO_MARKDOWN_DETAILS {
-	const { wallet, outcome, references } = context
+	const { wallet, references } = context
 
 	switch (componentAndProps.component) {
 		case 'AddressCorrelationDetails':
@@ -269,13 +234,11 @@ function renderComponentMarkdown(
 			return renderComponentToMarkdown(ScamAlertDetails, {
 				...componentAndProps.componentProps,
 				wallet,
-				outcome: narrowOutcome<ScamPreventionMetadata>(outcome),
 			})
 		case 'SecurityAuditsDetails':
 			return renderComponentToMarkdown(SecurityAuditsDetails, {
 				...componentAndProps.componentProps,
 				wallet,
-				metadata: narrowMetadata<SecurityAuditsMetadata>(outcome),
 			})
 		case 'TransactionInclusionDetails':
 			return renderComponentToMarkdown(TransactionInclusionDetails, {
@@ -291,13 +254,11 @@ function renderComponentMarkdown(
 			return renderComponentToMarkdown(AccountRecoveryDetails, {
 				...componentAndProps.componentProps,
 				wallet,
-				metadata: narrowMetadata<AccountRecoveryMetadata>(outcome),
 			})
 		case 'AccountUnruggabilityDetails':
 			return renderComponentToMarkdown(AccountUnruggabilityDetails, {
 				...componentAndProps.componentProps,
 				wallet,
-				metadata: narrowMetadata<AccountUnruggabilityMetadata>(outcome),
 			})
 		case 'UnratedAttribute':
 			// Deliberately not rendered: `UnratedAttribute` restates the

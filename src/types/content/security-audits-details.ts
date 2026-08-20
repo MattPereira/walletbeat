@@ -1,4 +1,4 @@
-import type { EvaluationDetailProps } from '@/schema/attributes'
+import type { EvaluationData, EvaluationDetailProps } from '@/schema/attributes'
 import type { SecurityAuditsMetadata } from '@/schema/attributes/security/security-audits-bounties'
 
 import { component, type Content } from '../content'
@@ -17,7 +17,7 @@ export interface SecurityAuditsDetailsContent {
 }
 
 export function securityAuditsDetailsContent(
-	bakedProps: Omit<SecurityAuditsDetailsProps, keyof EvaluationDetailProps<SecurityAuditsMetadata>>,
+	bakedProps: Omit<SecurityAuditsDetailsProps, keyof EvaluationData>,
 ): Content<{ WALLET_NAME: string }> {
 	return component<SecurityAuditsDetailsContent, keyof typeof bakedProps>(
 		'SecurityAuditsDetails',

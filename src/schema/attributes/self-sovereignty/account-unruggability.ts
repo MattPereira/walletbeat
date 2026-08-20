@@ -67,6 +67,11 @@ function evaluateGuardianUnruggabilityPolicy(
 	)
 
 	if (!isNonEmptyArray(takeOverPossibleOutcomes)) {
+		const metadata: AccountUnruggabilityMetadata = {
+			minimumGuardianPolicy: guardianPolicy,
+			outcomes,
+		}
+
 		return ctx.build({
 			outcome: {
 				id: 'guardian_policy_unruggable',
@@ -76,16 +81,18 @@ function evaluateGuardianUnruggabilityPolicy(
 					{{WALLET_NAME}} does not allow any external service to take over
 					your account.
 				`),
-				metadata: {
-					minimumGuardianPolicy: guardianPolicy,
-					outcomes,
-				},
+				metadata,
 			},
-			details: accountUnruggabilityDetailsContent({}),
+			details: accountUnruggabilityDetailsContent({ metadata }),
 		})
 	}
 
 	if (takeOverPossibleOutcomes.length === 1) {
+		const metadata: AccountUnruggabilityMetadata = {
+			minimumGuardianPolicy: guardianPolicy,
+			outcomes,
+		}
+
 		return ctx.build({
 			outcome: {
 				id: 'guardian_policy_ruggable_specific_scenario',
@@ -94,13 +101,15 @@ function evaluateGuardianUnruggabilityPolicy(
 				shortExplanation: typographicContentWithExtraOptionalStrings(
 					takeOverPossibleOutcomes[0].takeover.description,
 				),
-				metadata: {
-					minimumGuardianPolicy: guardianPolicy,
-					outcomes,
-				},
+				metadata,
 			},
-			details: accountUnruggabilityDetailsContent({}),
+			details: accountUnruggabilityDetailsContent({ metadata }),
 		})
+	}
+
+	const metadata: AccountUnruggabilityMetadata = {
+		minimumGuardianPolicy: guardianPolicy,
+		outcomes,
 	}
 
 	return ctx.build({
@@ -112,12 +121,9 @@ function evaluateGuardianUnruggabilityPolicy(
 				{{WALLET_NAME}}'s account recovery feature leaves the account
 				vulnerable to being rugged in multiple scenarios.
 			`),
-			metadata: {
-				minimumGuardianPolicy: guardianPolicy,
-				outcomes,
-			},
+			metadata,
 		},
-		details: accountUnruggabilityDetailsContent({}),
+		details: accountUnruggabilityDetailsContent({ metadata }),
 	})
 }
 
@@ -197,6 +203,11 @@ function evaluateAccountUnruggability(
 		)
 	}
 
+	const metadata: AccountUnruggabilityMetadata = {
+		minimumGuardianPolicy: null,
+		outcomes: null,
+	}
+
 	return ctx.build({
 		outcome: {
 			id: 'pass_no_guardian_recovery',
@@ -206,12 +217,9 @@ function evaluateAccountUnruggability(
 				Private key material never leaves {{WALLET_NAME}}, so no external
 				entity may take over your account.
 			`),
-			metadata: {
-				minimumGuardianPolicy: null,
-				outcomes: null,
-			},
+			metadata,
 		},
-		details: accountUnruggabilityDetailsContent({}),
+		details: accountUnruggabilityDetailsContent({ metadata }),
 	})
 }
 
