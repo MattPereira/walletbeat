@@ -3,7 +3,8 @@
 	import type {
 		ScamPreventionMetadata,
 	} from '@/schema/attributes/security/scam-prevention'
-	import type { Outcome } from '@/schema/attributes'
+	import type { WalletNameStrings } from '@/schema/attributes'
+	import type { Sentence } from '@/types/content'
 	import { isSupported } from '@/schema/features/support'
 	import { toFullyQualified } from '@/schema/reference'
 	import type { RatedWallet } from '@/schema/wallet'
@@ -14,10 +15,12 @@
 	// Props
 	const {
 		wallet,
-		outcome,
+		metadata,
+		shortExplanation,
 	}: {
 		wallet: RatedWallet
-		outcome: Outcome<ScamPreventionMetadata>
+		metadata: ScamPreventionMetadata
+		shortExplanation: Sentence<WalletNameStrings>
 	} = $props()
 
 	// Components
@@ -52,30 +55,30 @@
 
 
 <Typography
-	content={outcome.shortExplanation}
+	content={shortExplanation}
 	strings={getWalletEvalStrings(wallet)}
 />
 
-{#if outcome.metadata?.scamAlerts}
+{#if metadata.scamAlerts}
 	<ul data-list="gap-4">
-		{#if outcome.metadata.sendTransactionWarning?.required}
+		{#if metadata.sendTransactionWarning?.required}
 			<li data-list-item="gap-2">
 				<Typography
 					content={{
 						contentType: ContentType.MARKDOWN,
-						markdown: isSupported(outcome.metadata.scamAlerts.sendTransactionWarning)
+						markdown: isSupported(metadata.scamAlerts.sendTransactionWarning)
 							? `**{{WALLET_NAME}}** helps you stay safe when sending funds by ${
-									outcome.metadata.scamAlerts.sendTransactionWarning.newRecipientWarning &&
-									outcome.metadata.scamAlerts.sendTransactionWarning.userWhitelist
+									metadata.scamAlerts.sendTransactionWarning.newRecipientWarning &&
+									metadata.scamAlerts.sendTransactionWarning.userWhitelist
 										? 'warning you when sending funds to an address you have not sent or received funds from in the past. It also lets you build a contact book of addresses, and warns you when sending funds to addresses not in it.'
-										: outcome.metadata.scamAlerts.sendTransactionWarning.newRecipientWarning
+										: metadata.scamAlerts.sendTransactionWarning.newRecipientWarning
 											? 'warning you when sending funds to an address you have not sent or received funds from in the past.'
-											: outcome.metadata.scamAlerts.sendTransactionWarning.userWhitelist
+											: metadata.scamAlerts.sendTransactionWarning.userWhitelist
 												? 'allowing you to build a contact book of addresses and warning you when sending funds to addresses not in it.'
 												: 'providing transaction warnings.'
-								}${leakClause(outcome.metadata.scamAlerts.sendTransactionWarning, [
+								}${leakClause(metadata.scamAlerts.sendTransactionWarning, [
 									[
-										outcome.metadata.scamAlerts.sendTransactionWarning.leaksRecipient,
+										metadata.scamAlerts.sendTransactionWarning.leaksRecipient,
 										"the recipient's Ethereum address",
 									],
 								])}`
@@ -84,26 +87,26 @@
 					strings={getWalletEvalStrings(wallet)}
 				/>
 
-				{#if isSupported(outcome.metadata.scamAlerts.sendTransactionWarning) && outcome.metadata.scamAlerts.sendTransactionWarning.ref}
+				{#if isSupported(metadata.scamAlerts.sendTransactionWarning) && metadata.scamAlerts.sendTransactionWarning.ref}
 					<ReferenceLinks
-						references={toFullyQualified(outcome.metadata.scamAlerts.sendTransactionWarning.ref)}
+						references={toFullyQualified(metadata.scamAlerts.sendTransactionWarning.ref)}
 					/>
 				{/if}
 			</li>
 		{/if}
 
-		{#if outcome.metadata.contractTransactionWarning?.required}
-			{@const contractFeatures = isSupported(outcome.metadata.scamAlerts.contractTransactionWarning)
+		{#if metadata.contractTransactionWarning?.required}
+			{@const contractFeatures = isSupported(metadata.scamAlerts.contractTransactionWarning)
 				? [
-						outcome.metadata.scamAlerts.contractTransactionWarning.contractRegistry,
-						outcome.metadata.scamAlerts.contractTransactionWarning.previousContractInteractionWarning,
-						outcome.metadata.scamAlerts.contractTransactionWarning.recentContractWarning,
+						metadata.scamAlerts.contractTransactionWarning.contractRegistry,
+						metadata.scamAlerts.contractTransactionWarning.previousContractInteractionWarning,
+						metadata.scamAlerts.contractTransactionWarning.recentContractWarning,
 					].filter(Boolean)
 				: []}
-			{@const contractLeak = isSupported(outcome.metadata.scamAlerts.contractTransactionWarning)
-				? leakClause(outcome.metadata.scamAlerts.contractTransactionWarning, [
+			{@const contractLeak = isSupported(metadata.scamAlerts.contractTransactionWarning)
+				? leakClause(metadata.scamAlerts.contractTransactionWarning, [
 						[
-							outcome.metadata.scamAlerts.contractTransactionWarning.leaksContractAddress,
+							metadata.scamAlerts.contractTransactionWarning.leaksContractAddress,
 							'the contract address',
 						],
 					])
@@ -119,27 +122,27 @@
 				<Typography
 					content={{
 						contentType: ContentType.MARKDOWN,
-						markdown: isSupported(outcome.metadata.scamAlerts.contractTransactionWarning)
+						markdown: isSupported(metadata.scamAlerts.contractTransactionWarning)
 							? `**{{WALLET_NAME}}** helps you stay safe when doing onchain transactions by${
 									contractFeatures.length > 1
 										? `: ${[
-												outcome.metadata.scamAlerts.contractTransactionWarning.contractRegistry &&
+												metadata.scamAlerts.contractTransactionWarning.contractRegistry &&
 													'Checking the contract or transaction data against a database of known scams',
-												outcome.metadata.scamAlerts.contractTransactionWarning
+												metadata.scamAlerts.contractTransactionWarning
 													.previousContractInteractionWarning &&
 													'Warning you when interacting with a contract you have not interacted with before',
-												outcome.metadata.scamAlerts.contractTransactionWarning.recentContractWarning &&
+												metadata.scamAlerts.contractTransactionWarning.recentContractWarning &&
 													'Warning you when interacting with a contract that has only recently been created onchain',
 											]
 												.filter(segment => segment)
 												.map(listItem => `\n* ${listItem}`)
 												.join('')}`
-										: outcome.metadata.scamAlerts.contractTransactionWarning.contractRegistry
+										: metadata.scamAlerts.contractTransactionWarning.contractRegistry
 											? ' checking the contract or transaction data against a database of known scams.'
-											: outcome.metadata.scamAlerts.contractTransactionWarning
+											: metadata.scamAlerts.contractTransactionWarning
 														.previousContractInteractionWarning
 												? ' warning you when interacting with a contract you have not interacted with before.'
-												: outcome.metadata.scamAlerts.contractTransactionWarning.recentContractWarning
+												: metadata.scamAlerts.contractTransactionWarning.recentContractWarning
 													? ' warning you when interacting with a contract that has only recently been created onchain.'
 													: ' providing contract warnings.'
 								}${contractLeakSuffix}`
@@ -148,27 +151,27 @@
 					strings={getWalletEvalStrings(wallet)}
 				/>
 
-				{#if isSupported(outcome.metadata.scamAlerts.contractTransactionWarning) && outcome.metadata.scamAlerts.contractTransactionWarning.ref}
+				{#if isSupported(metadata.scamAlerts.contractTransactionWarning) && metadata.scamAlerts.contractTransactionWarning.ref}
 					<ReferenceLinks
-						references={toFullyQualified(outcome.metadata.scamAlerts.contractTransactionWarning.ref)}
+						references={toFullyQualified(metadata.scamAlerts.contractTransactionWarning.ref)}
 					/>
 				{/if}
 			</li>
 		{/if}
 
-		{#if outcome.metadata.scamUrlWarning?.required}
+		{#if metadata.scamUrlWarning?.required}
 			<li data-list-item="gap-2">
 				<Typography
 					content={{
 						contentType: ContentType.MARKDOWN,
-						markdown: isSupported(outcome.metadata.scamAlerts.scamUrlWarning)
-							? `**{{WALLET_NAME}}** helps you stay safe when connecting to onchain apps by checking its URL against a set of known scam apps.${leakClause(outcome.metadata.scamAlerts.scamUrlWarning, [
+						markdown: isSupported(metadata.scamAlerts.scamUrlWarning)
+							? `**{{WALLET_NAME}}** helps you stay safe when connecting to onchain apps by checking its URL against a set of known scam apps.${leakClause(metadata.scamAlerts.scamUrlWarning, [
 									[
-										outcome.metadata.scamAlerts.scamUrlWarning.leaksVisitedUrl === 'FULL_URL',
+										metadata.scamAlerts.scamUrlWarning.leaksVisitedUrl === 'FULL_URL',
 										'the full URL of the app',
 									],
 									[
-										outcome.metadata.scamAlerts.scamUrlWarning.leaksVisitedUrl === 'DOMAIN_ONLY',
+										metadata.scamAlerts.scamUrlWarning.leaksVisitedUrl === 'DOMAIN_ONLY',
 										'the domain name of the app',
 									],
 								])}`
@@ -177,23 +180,23 @@
 					strings={getWalletEvalStrings(wallet)}
 				/>
 
-				{#if isSupported(outcome.metadata.scamAlerts.scamUrlWarning) && outcome.metadata.scamAlerts.scamUrlWarning.ref}
+				{#if isSupported(metadata.scamAlerts.scamUrlWarning) && metadata.scamAlerts.scamUrlWarning.ref}
 					<ReferenceLinks
-						references={toFullyQualified(outcome.metadata.scamAlerts.scamUrlWarning.ref)}
+						references={toFullyQualified(metadata.scamAlerts.scamUrlWarning.ref)}
 					/>
 				{/if}
 			</li>
 		{/if}
 
-		{#if outcome.metadata.unlimitedApprovalWarning?.required}
+		{#if metadata.unlimitedApprovalWarning?.required}
 			<li data-list-item="gap-2">
 				<Typography
 					content={{
 						contentType: ContentType.MARKDOWN,
-						markdown: isSupported(outcome.metadata.scamAlerts.unlimitedApprovalWarning)
-							? `**{{WALLET_NAME}}** warns you before granting an unlimited ERC-20 token approval.${leakClause(outcome.metadata.scamAlerts.unlimitedApprovalWarning, [
+						markdown: isSupported(metadata.scamAlerts.unlimitedApprovalWarning)
+							? `**{{WALLET_NAME}}** warns you before granting an unlimited ERC-20 token approval.${leakClause(metadata.scamAlerts.unlimitedApprovalWarning, [
 									[
-										outcome.metadata.scamAlerts.unlimitedApprovalWarning.leaksSpenderAddress,
+										metadata.scamAlerts.unlimitedApprovalWarning.leaksSpenderAddress,
 										'the spender address',
 									],
 								])}`
@@ -202,9 +205,9 @@
 					strings={getWalletEvalStrings(wallet)}
 				/>
 
-				{#if isSupported(outcome.metadata.scamAlerts.unlimitedApprovalWarning) && outcome.metadata.scamAlerts.unlimitedApprovalWarning.ref}
+				{#if isSupported(metadata.scamAlerts.unlimitedApprovalWarning) && metadata.scamAlerts.unlimitedApprovalWarning.ref}
 					<ReferenceLinks
-						references={toFullyQualified(outcome.metadata.scamAlerts.unlimitedApprovalWarning.ref)}
+						references={toFullyQualified(metadata.scamAlerts.unlimitedApprovalWarning.ref)}
 					/>
 				{/if}
 			</li>

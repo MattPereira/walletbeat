@@ -403,17 +403,20 @@ function combineEvaluation(
 		.filter((part): part is string => part !== null)
 		.map(trimWhitespacePrefix)
 
+	const metadata: SecurityAuditsMetadata = {
+		securityAudits: auditsPart.audits,
+	}
+
 	return ctx.build({
 		outcome: {
 			id: `${auditsPart.outcomeId}__${bugBountyPart.outcomeId}`,
 			rating,
 			displayName,
 			shortExplanation,
-			metadata: {
-				securityAudits: auditsPart.audits,
-			},
+			metadata,
 		},
 		details: securityAuditsDetailsContent({
+			metadata,
 			auditedInLastYear: auditsPart.auditedInLastYear,
 			hasUnaddressedFlaws: auditsPart.hasUnaddressedFlaws,
 			bugBountyDetails: bugBountyPart.detailsMarkdown,

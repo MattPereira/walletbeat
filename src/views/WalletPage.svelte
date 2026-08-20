@@ -1169,7 +1169,6 @@
 					{:else if evalAttr.evaluation.details}
 						{@const componentName = evalAttr.evaluation.details.component.component}
 						{@const componentProps = evalAttr.evaluation.details.component.componentProps}
-						{@const outcome = evalAttr.evaluation.outcome}
 						{@const references = evalAttr.evaluation.references && toFullyQualified(evalAttr.evaluation.references)}
 
 						<div data-column>
@@ -1180,17 +1179,17 @@
 							{:else if componentName === 'ChainVerificationDetails'}
 								<ChainVerificationDetails {...(componentProps as ChainVerificationDetailsProps)} {wallet} refs={references} />
 							{:else if componentName === 'ScamAlertDetails'}
-								<ScamAlertDetails {...(componentProps as ScamAlertDetailsProps)} {wallet} {outcome} />
+								<ScamAlertDetails {...(componentProps as ScamAlertDetailsProps)} {wallet} />
 							{:else if componentName === 'SecurityAuditsDetails'}
-								<SecurityAuditsDetails {...(componentProps as SecurityAuditsDetailsProps)} {wallet} metadata={outcome.metadata!} />
+								<SecurityAuditsDetails {...(componentProps as SecurityAuditsDetailsProps)} {wallet} />
 							{:else if componentName === 'TransactionInclusionDetails'}
 								<TransactionInclusionDetails {...(componentProps as TransactionInclusionDetailsProps)} {wallet} />
 							{:else if componentName === 'FundingDetails'}
 								<FundingDetails {...(componentProps as FundingDetailsProps)} {wallet} />
 							{:else if componentName === 'AccountRecoveryDetails'}
-								<AccountRecoveryDetails {...(componentProps as AccountRecoveryDetailsProps)} {wallet} metadata={outcome.metadata!} />
+								<AccountRecoveryDetails {...(componentProps as AccountRecoveryDetailsProps)} {wallet} />
 							{:else if componentName === 'AccountUnruggabilityDetails'}
-								<AccountUnruggabilityDetails {...(componentProps as AccountUnruggabilityDetailsProps)} {wallet} metadata={outcome.metadata!} />
+								<AccountUnruggabilityDetails {...(componentProps as AccountUnruggabilityDetailsProps)} {wallet} />
 							{:else if componentName === 'UnratedAttribute'}
 								<UnratedAttribute {...(componentProps as UnratedAttributeProps<OutcomeMetadata>)} {wallet} />
 							{/if}

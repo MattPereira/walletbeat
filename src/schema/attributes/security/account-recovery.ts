@@ -95,6 +95,12 @@ function evaluateGuardianRecoveryPolicy(
 	const nonRecoverableOutcomes = getNonRecoverableGuardianScenarios(guardianPolicy)
 
 	if (!isNonEmptyArray(nonRecoverableOutcomes)) {
+		const metadata: AccountRecoveryMetadata = {
+			minimumGuardianPolicy: guardianPolicy,
+			outcomes,
+			drills: null,
+		}
+
 		return ctx.build({
 			outcome: {
 				id: 'guardian_policy_recoverable',
@@ -104,17 +110,19 @@ function evaluateGuardianRecoveryPolicy(
 					{{WALLET_NAME}} lets the user recover their account in all
 					likely catastrophic scenarios.
 				`),
-				metadata: {
-					minimumGuardianPolicy: guardianPolicy,
-					outcomes,
-					drills: null,
-				},
+				metadata,
 			},
-			details: accountRecoveryDetailsContent({}),
+			details: accountRecoveryDetailsContent({ metadata }),
 		})
 	}
 
 	if (nonRecoverableOutcomes.length === 1) {
+		const metadata: AccountRecoveryMetadata = {
+			minimumGuardianPolicy: guardianPolicy,
+			outcomes,
+			drills: null,
+		}
+
 		return ctx.build({
 			outcome: {
 				id: 'guardian_policy_nonrecoverable_specific_scenario',
@@ -123,14 +131,16 @@ function evaluateGuardianRecoveryPolicy(
 				shortExplanation: typographicContentWithExtraOptionalStrings(
 					nonRecoverableOutcomes[0].recovery.description,
 				),
-				metadata: {
-					minimumGuardianPolicy: guardianPolicy,
-					outcomes,
-					drills: null,
-				},
+				metadata,
 			},
-			details: accountRecoveryDetailsContent({}),
+			details: accountRecoveryDetailsContent({ metadata }),
 		})
+	}
+
+	const metadata: AccountRecoveryMetadata = {
+		minimumGuardianPolicy: guardianPolicy,
+		outcomes,
+		drills: null,
 	}
 
 	return ctx.build({
@@ -142,13 +152,9 @@ function evaluateGuardianRecoveryPolicy(
 				{{WALLET_NAME}}'s account recovery feature cannot be
 				relied upon in multiple scenarios.
 			`),
-			metadata: {
-				minimumGuardianPolicy: guardianPolicy,
-				outcomes,
-				drills: null,
-			},
+			metadata,
 		},
-		details: accountRecoveryDetailsContent({}),
+		details: accountRecoveryDetailsContent({ metadata }),
 	})
 }
 
@@ -222,6 +228,12 @@ function evaluateAccountRecoveryDrills(
 		}))
 
 		if (!isNonEmptyArray(missing)) {
+			const metadata: AccountRecoveryMetadata = {
+				minimumGuardianPolicy: null,
+				outcomes: null,
+				drills: { configured, missing: [] },
+			}
+
 			return ctx.build({
 				outcome: {
 					id: 'recovery_drills_supported',
@@ -231,14 +243,16 @@ function evaluateAccountRecoveryDrills(
 						{{WALLET_NAME}} periodically asks users to confirm access to their
 						${commaListFormat(configured.map(drill => accountRecoveryDrillWording(drill.type).noun))}.
 					`),
-					metadata: {
-						minimumGuardianPolicy: null,
-						outcomes: null,
-						drills: { configured, missing: [] },
-					},
+					metadata,
 				},
-				details: accountRecoveryDetailsContent({}),
+				details: accountRecoveryDetailsContent({ metadata }),
 			})
+		}
+
+		const metadata: AccountRecoveryMetadata = {
+			minimumGuardianPolicy: null,
+			outcomes: null,
+			drills: { configured, missing },
 		}
 
 		return ctx.build({
@@ -250,15 +264,21 @@ function evaluateAccountRecoveryDrills(
 					{{WALLET_NAME}} does not run all recommended periodic
 					account recovery check-ups.
 				`),
-				metadata: { minimumGuardianPolicy: null, outcomes: null, drills: { configured, missing } },
+				metadata,
 			},
-			details: accountRecoveryDetailsContent({}),
+			details: accountRecoveryDetailsContent({ metadata }),
 			howToImprove: drillsHowToImprove(missing),
 		})
 	}
 
 	// For empty recommended drill types
 	if (!isNonEmptyArray(recommendedDrillTypes)) {
+		const metadata: AccountRecoveryMetadata = {
+			minimumGuardianPolicy: null,
+			outcomes: null,
+			drills: { configured: [], missing: [] },
+		}
+
 		return ctx.build({
 			outcome: {
 				id: 'no_applicable_recovery_drills',
@@ -268,14 +288,16 @@ function evaluateAccountRecoveryDrills(
 					{{WALLET_NAME}}'s account type has no user-held recovery material
 					that periodic check-ups could verify.
 				`),
-				metadata: {
-					minimumGuardianPolicy: null,
-					outcomes: null,
-					drills: { configured: [], missing: [] },
-				},
+				metadata,
 			},
-			details: accountRecoveryDetailsContent({}),
+			details: accountRecoveryDetailsContent({ metadata }),
 		})
+	}
+
+	const metadata: AccountRecoveryMetadata = {
+		minimumGuardianPolicy: null,
+		outcomes: null,
+		drills: { configured: [], missing: recommendedDrillTypes },
 	}
 
 	return ctx.build({
@@ -287,13 +309,9 @@ function evaluateAccountRecoveryDrills(
 				{{WALLET_NAME}} does not periodically remind users to verify
 				they can still recover their account.
 			`),
-			metadata: {
-				minimumGuardianPolicy: null,
-				outcomes: null,
-				drills: { configured: [], missing: recommendedDrillTypes },
-			},
+			metadata,
 		},
-		details: accountRecoveryDetailsContent({}),
+		details: accountRecoveryDetailsContent({ metadata }),
 		howToImprove: drillsHowToImprove(recommendedDrillTypes),
 	})
 }
@@ -350,6 +368,11 @@ function evaluateAccountRecovery(
 		recommendedDrillTypes,
 	)
 
+	const noGuardianRecoveryMetadata: AccountRecoveryMetadata = {
+		minimumGuardianPolicy: null,
+		outcomes: null,
+		drills: null,
+	}
 	const guardianEval = isSupported(accountRecovery.guardianRecovery)
 		? evaluateGuardianRecoveryPolicy(ctx, accountRecovery.guardianRecovery.minimumGuardianPolicy)
 		: ctx.build({
@@ -361,13 +384,9 @@ function evaluateAccountRecovery(
 						{{WALLET_NAME}} does not implement guardian-based account recovery.
 						The user will lose access to their account if they lose their seed phrase.
 					`),
-					metadata: {
-						minimumGuardianPolicy: null,
-						outcomes: null,
-						drills: null,
-					},
+					metadata: noGuardianRecoveryMetadata,
 				},
-				details: accountRecoveryDetailsContent({}),
+				details: accountRecoveryDetailsContent({ metadata: noGuardianRecoveryMetadata }),
 			})
 
 	// `pickWorstRating` returns one sub-evaluation wholesale, so whichever
@@ -381,9 +400,19 @@ function evaluateAccountRecovery(
 		drills: drillsEval.outcome.metadata.drills,
 	}
 
+	// The details bake the metadata they were built with, so they have to be
+	// rebuilt from the merged metadata too, not just carried over.
+	const withMergedMetadata = (
+		evaluation: Evaluation<AccountRecoveryMetadata>,
+	): Evaluation<AccountRecoveryMetadata> => ({
+		...evaluation,
+		outcome: { ...evaluation.outcome, metadata: mergedMetadata },
+		details: accountRecoveryDetailsContent({ metadata: mergedMetadata }),
+	})
+
 	return pickWorstRating<AccountRecoveryMetadata>([
-		{ ...guardianEval, outcome: { ...guardianEval.outcome, metadata: mergedMetadata } },
-		{ ...drillsEval, outcome: { ...drillsEval.outcome, metadata: mergedMetadata } },
+		withMergedMetadata(guardianEval),
+		withMergedMetadata(drillsEval),
 	])
 }
 

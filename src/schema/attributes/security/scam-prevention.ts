@@ -210,17 +210,19 @@ function evaluateScamAlerts(
 
 	if (!isNonEmptyArray(supportedFeatures)) {
 		// No features supported.
+		const shortExplanation = sentence(
+			'{{WALLET_NAME}} makes no attempt to warn the user about potential scams.',
+		)
+
 		return ctx.build({
 			outcome: {
 				id: 'none_implemented',
 				displayName: 'No scam prevention',
 				rating: Rating.FAIL,
-				shortExplanation: sentence(
-					'{{WALLET_NAME}} makes no attempt to warn the user about potential scams.',
-				),
+				shortExplanation,
 				metadata,
 			},
-			details: scamAlertsDetailsContent({}),
+			details: scamAlertsDetailsContent({ metadata, shortExplanation }),
 			howToImprove: paragraph('{{WALLET_NAME}} should implement scam alerting features.'),
 		})
 	}
@@ -234,17 +236,19 @@ function evaluateScamAlerts(
 	) {
 		// Special case: If URLs are leaked, this gets a FAIL.
 		if (scamAlerts.scamUrlWarning.leaksVisitedUrl === 'FULL_URL') {
+			const shortExplanation = sentence(
+				'{{WALLET_NAME}} warns you about potential scams, but leaks your browsing history in the process.',
+			)
+
 			return ctx.build({
 				outcome: {
 					id: 'leak_full_url',
 					displayName: 'Scam prevention feature leaks history',
 					rating: Rating.FAIL,
-					shortExplanation: sentence(
-						'{{WALLET_NAME}} warns you about potential scams, but leaks your browsing history in the process.',
-					),
+					shortExplanation,
 					metadata,
 				},
-				details: scamAlertsDetailsContent({}),
+				details: scamAlertsDetailsContent({ metadata, shortExplanation }),
 				howToImprove: markdown(`
 					No application should ever send your browsing history to an external service, and neither should {{WALLET_NAME}}.
 
@@ -257,17 +261,19 @@ function evaluateScamAlerts(
 			scamAlerts.scamUrlWarning.leaksVisitedUrl === 'DOMAIN_ONLY' &&
 			(scamAlerts.scamUrlWarning.leaksUserAddress || scamAlerts.scamUrlWarning.leaksUserIp)
 		) {
+			const shortExplanation = sentence(
+				'{{WALLET_NAME}} warns you about potential scams, but leaks your browsed websites in the process.',
+			)
+
 			return ctx.build({
 				outcome: {
 					id: 'leak_domain',
 					displayName: 'Scam prevention feature leaks website history',
 					rating: Rating.FAIL,
-					shortExplanation: sentence(
-						'{{WALLET_NAME}} warns you about potential scams, but leaks your browsed websites in the process.',
-					),
+					shortExplanation,
 					metadata,
 				},
-				details: scamAlertsDetailsContent({}),
+				details: scamAlertsDetailsContent({ metadata, shortExplanation }),
 				howToImprove: markdown(`
 					No application should ever send your browsing history to an external service, and neither should {{WALLET_NAME}}.
 
@@ -279,17 +285,19 @@ function evaluateScamAlerts(
 
 	if (unsupportedFeatures.length > 0) {
 		// Some but not all features supported.
+		const shortExplanation = sentence(
+			`{{WALLET_NAME}} warns the user about ${commaListFormat(supportedFeatures.map(sas => sas.humanFeature))} but not about ${commaListFormat(unsupportedFeatures.map(sas => sas.humanFeature))}`,
+		)
+
 		return ctx.build({
 			outcome: {
 				id: 'partially_supported',
 				displayName: 'Some scam prevention features',
 				rating: Rating.PARTIAL,
-				shortExplanation: sentence(
-					`{{WALLET_NAME}} warns the user about ${commaListFormat(supportedFeatures.map(sas => sas.humanFeature))} but not about ${commaListFormat(unsupportedFeatures.map(sas => sas.humanFeature))}`,
-				),
+				shortExplanation,
 				metadata,
 			},
-			details: scamAlertsDetailsContent({}),
+			details: scamAlertsDetailsContent({ metadata, shortExplanation }),
 			howToImprove: markdown(`
 				{{WALLET_NAME}} should implement the following features:
 
@@ -309,17 +317,19 @@ function evaluateScamAlerts(
 			sas.required && sas.supported && !sas.privacyPreserving
 
 		// Not all features implemented with privacy support.
+		const shortExplanation = sentence(
+			`{{WALLET_NAME}} warns the user about ${commaListFormat(supportedFeatures.map(sas => sas.humanFeature))} in a privacy-invasive way.`,
+		)
+
 		return ctx.build({
 			outcome: {
 				id: 'need_privacy',
 				displayName: 'Privacy-invasive scam prevention',
 				rating: Rating.PARTIAL,
-				shortExplanation: sentence(
-					`{{WALLET_NAME}} warns the user about ${commaListFormat(supportedFeatures.map(sas => sas.humanFeature))} in a privacy-invasive way.`,
-				),
+				shortExplanation,
 				metadata,
 			},
-			details: scamAlertsDetailsContent({}),
+			details: scamAlertsDetailsContent({ metadata, shortExplanation }),
 			howToImprove: markdown(`
 				{{WALLET_NAME}} should ensure all scam alerting features are implemented in a privacy-preserving manner.
 
@@ -348,17 +358,19 @@ function evaluateScamAlerts(
 	}
 
 	// All features implements with privacy.
+	const shortExplanation = sentence(
+		`{{WALLET_NAME}} warns the user about ${commaListFormat(supportedFeatures.map(sas => sas.humanFeature))}.`,
+	)
+
 	return ctx.build({
 		outcome: {
 			id: 'all_implemented',
 			displayName: 'Full-featured scam prevention',
 			rating: Rating.PASS,
-			shortExplanation: sentence(
-				`{{WALLET_NAME}} warns the user about ${commaListFormat(supportedFeatures.map(sas => sas.humanFeature))}.`,
-			),
+			shortExplanation,
 			metadata,
 		},
-		details: scamAlertsDetailsContent({}),
+		details: scamAlertsDetailsContent({ metadata, shortExplanation }),
 	})
 }
 
